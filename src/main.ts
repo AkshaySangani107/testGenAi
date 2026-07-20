@@ -1,8 +1,20 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { parseTypeScriptFile } from './parser/typescript.parser'
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
-}
-bootstrap();
+const result = parseTypeScriptFile(`
+  import { Injectable } from '@nestjs/common'
+
+  @Injectable()
+  export class PaymentService {
+    constructor(private readonly repo: PaymentRepository) {}
+
+    async processPayment(userId: string, amount: number): Promise<void> {
+      // logic
+    }
+
+    findAll(): Promise<Payment[]> {
+      return this.repo.findAll()
+    }
+  }
+`)
+
+console.log(JSON.stringify(result, null, 2))
