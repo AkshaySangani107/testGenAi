@@ -2,110 +2,144 @@ import { AppDataSource } from '../../data-source'
 import { KnowledgeBase } from '../entities/knowledge-base.entity'
 
 const knowledgeData = [
-    // Testing patterns
+    // =========================
+    // SERVICE
+    // =========================
     {
-        content: `NestJS unit tests should mock all dependencies using jest.fn(). 
-    Never use real database connections in unit tests.
-    Use Test.createTestingModule() to create isolated test modules.`,
-        category: 'testing-pattern',
-        language: 'typescript',
-    },
-    {
-        content: `Always test error cases in NestJS services. 
-    If a service throws NotFoundException, write a test that 
-    verifies it throws when the resource is not found.
-    Use rejects.toThrow() for async error testing.`,
-        category: 'testing-pattern',
-        language: 'typescript',
-    },
-    {
-        content: `Mock TypeORM repository methods in NestJS tests.
-    Mock findOne, save, delete, update using jest.fn().
-    Use mockResolvedValue for async methods.
-    Use getRepositoryToken(Entity) to provide mock repository.`,
-        category: 'testing-pattern',
-        language: 'typescript',
-    },
-    {
+        title: 'Testing Async Service Methods',
+        category: 'SERVICE',
+        tags: ['async', 'await', 'jest', 'mockResolvedValue'],
         content: `Test async NestJS service methods with async/await.
-    Always await expect() for async functions.
-    Use mockResolvedValue for successful async responses.
-    Use mockRejectedValue to simulate async failures.`,
-        category: 'testing-pattern',
+Always await expect() for async functions.
+Use mockResolvedValue for successful async responses.
+Use mockRejectedValue to simulate async failures.`,
+        language: 'typescript',
+    },
+    {
+        title: 'Service Error Handling',
+        category: 'SERVICE',
+        tags: ['NotFoundException', 'errors', 'rejects', 'exceptions'],
+        content: `Always test error cases in NestJS services.
+If a service throws NotFoundException, write a test that verifies it throws when the resource is not found.
+Use rejects.toThrow() for async error testing.`,
         language: 'typescript',
     },
 
-    // Common bugs
+    // =========================
+    // REPOSITORY
+    // =========================
     {
-        content: `Common NestJS bug: Not handling null from findOne.
-    Always check if result is null before using it.
-    Throw NotFoundException when entity is not found.
-    Test: mock findOne to return null and verify NotFoundException thrown.`,
-        category: 'bug-pattern',
+        title: 'Mock TypeORM Repository',
+        category: 'REPOSITORY',
+        tags: ['typeorm', 'repository', 'mock', 'jest'],
+        content: `Mock TypeORM repository methods in NestJS tests.
+Mock findOne, save, delete, update using jest.fn().
+Use mockResolvedValue for async methods.
+Use getRepositoryToken(Entity) to provide mock repository.`,
         language: 'typescript',
     },
     {
-        content: `Common bug: Password stored as plain text.
-    Always hash passwords with bcrypt before saving.
-    Never store or return plain text passwords in responses.
-    Test: verify password in DB is different from input password.`,
-        category: 'bug-pattern',
-        language: 'typescript',
-    },
-    {
-        content: `Common bug: Missing validation on DTOs.
-    Use class-validator: @IsEmail(), @IsNotEmpty(), @MinLength().
-    Test: send invalid data and verify 400 BadRequest thrown.
-    Test: send empty fields and verify validation error.`,
-        category: 'bug-pattern',
-        language: 'typescript',
-    },
-    {
-        content: `Common bug: Race condition on concurrent requests.
-    Test concurrent calls to the same endpoint.
-    Verify data integrity when multiple requests hit simultaneously.
-    Use Promise.all() in tests to simulate concurrency.`,
-        category: 'bug-pattern',
+        title: 'Repository Null Handling',
+        category: 'REPOSITORY',
+        tags: ['findOne', 'null', 'NotFoundException'],
+        content: `Always check if findOne returns null.
+Throw NotFoundException when entity is not found.
+Test this by mocking findOne to return null.`,
         language: 'typescript',
     },
 
-    // Security patterns
+    // =========================
+    // CONTROLLER
+    // =========================
     {
-        content: `Security test: Verify user ownership before update/delete.
-    Test that user A cannot update/delete user B's resources.
-    Throw ForbiddenException if requesting user doesn't own resource.
-    Mock auth context to test different user scenarios.`,
-        category: 'security-pattern',
+        title: 'Controller Unit Testing',
+        category: 'CONTROLLER',
+        tags: ['controller', 'http', 'jest'],
+        content: `NestJS controllers should be tested independently from services.
+Mock the service layer using jest.fn().
+Verify status codes and returned DTOs.`,
         language: 'typescript',
+
     },
+
+    // =========================
+    // VALIDATION
+    // =========================
     {
-        content: `Security test: JWT token validation.
-    Test expired tokens are rejected.
-    Test invalid tokens throw UnauthorizedException.
-    Test missing tokens are rejected with 401.`,
-        category: 'security-pattern',
+        title: 'DTO Validation',
+        category: 'VALIDATION',
+        tags: ['class-validator', 'dto', 'validation'],
+        content: `Use class-validator decorators like @IsEmail(), @IsNotEmpty(), and @MinLength().
+Test invalid payloads and verify BadRequestException is returned.`,
         language: 'typescript',
     },
 
-    // Edge cases
+    // =========================
+    // AUTH
+    // =========================
     {
-        content: `Edge case testing for NestJS services.
-    Test with empty strings, null values, undefined inputs.
-    Test with maximum length inputs to check overflow.
-    Test with special characters in string fields.`,
-        category: 'edge-case',
+        title: 'JWT Authentication',
+        category: 'AUTH',
+        tags: ['jwt', 'authentication', 'guards'],
+        content: `Test expired JWT tokens.
+Test invalid JWT tokens.
+Test missing Authorization header.
+Verify UnauthorizedException is thrown.`,
         language: 'typescript',
     },
     {
-        content: `Edge case: Test pagination boundary conditions.
-    Test page 0 or negative page numbers.
-    Test limit exceeding maximum allowed value.
-    Test empty result sets with pagination.`,
-        category: 'edge-case',
+        title: 'Resource Ownership',
+        category: 'AUTH',
+        tags: ['authorization', 'ownership', 'ForbiddenException'],
+        content: `Verify users cannot modify resources they do not own.
+Throw ForbiddenException when ownership validation fails.`,
         language: 'typescript',
     },
-]
 
+    // =========================
+    // DATABASE
+    // =========================
+    {
+        title: 'Database Transactions',
+        category: 'DATABASE',
+        tags: ['transaction', 'rollback', 'typeorm'],
+        content: `Verify transactional operations rollback correctly when failures occur.
+Mock transaction manager for unit tests.`,
+        language: 'typescript',
+    },
+
+    // =========================
+    // EDGE CASES
+    // =========================
+    {
+        title: 'Boundary Value Testing',
+        category: 'EDGE_CASE',
+        tags: ['boundary', 'null', 'undefined', 'empty'],
+        content: `Test empty strings, null values, undefined values and maximum input lengths.
+Verify services handle invalid inputs gracefully.`,
+        language: 'typescript',
+    },
+    {
+        title: 'Pagination Edge Cases',
+        category: 'EDGE_CASE',
+        tags: ['pagination', 'limit', 'page'],
+        content: `Test page 0, negative page numbers, oversized limits and empty result sets.`,
+        language: 'typescript',
+    },
+
+    // =========================
+    // GENERAL TESTING
+    // =========================
+    {
+        title: 'NestJS Testing Module',
+        category: 'TESTING',
+        tags: ['TestingModule', 'jest', 'unit-test'],
+        content: `NestJS unit tests should mock all dependencies using jest.fn().
+Never connect to a real database during unit testing.
+Use Test.createTestingModule() to create isolated testing modules.`,
+        language: 'typescript',
+    },
+];
 async function seed() {
     await AppDataSource.initialize()
     console.log('DB connected')
