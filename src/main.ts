@@ -1,20 +1,10 @@
-import { parseTypeScriptFile } from './parser/typescript.parser'
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module'
 
-const result = parseTypeScriptFile(`
-  import { Injectable } from '@nestjs/common'
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule)
+  await app.listen(3000)
+  console.log('TestGenAI backend running on port 3000')
+}
 
-  @Injectable()
-  export class PaymentService {
-    constructor(private readonly repo: PaymentRepository) {}
-
-    async processPayment(userId: string, amount: number): Promise<void> {
-      // logic
-    }
-
-    findAll(): Promise<Payment[]> {
-      return this.repo.findAll()
-    }
-  }
-`)
-
-console.log(JSON.stringify(result, null, 2))
+bootstrap()
