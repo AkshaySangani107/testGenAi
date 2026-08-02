@@ -17,9 +17,10 @@ export class GroqProvider extends BaseAiProvider {
 
   protected async doGenerate(prompt: string, options?: AiGenerateOptions): Promise<InternalAiResponse> {
     const response = await this.client.chat.completions.create({
-      model: 'openai/gpt-oss-120b', // Default high-performance model for Groq
+      model: 'llama-3.3-70b-versatile', // Default high-performance model for Groq
       messages: [{ role: 'user', content: prompt }],
       temperature: options?.temperature,
+      // max_tokens: 8192,
       stream: false,
     });
 

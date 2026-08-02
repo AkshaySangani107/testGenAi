@@ -1,12 +1,16 @@
 import { Module, OnModuleInit } from '@nestjs/common'
+import { APP_GUARD } from '@nestjs/core'
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { RagModule } from './rag/rag.module'
 import { AiModule } from './ai/ai.module'
 import { EmbeddingService } from './rag/embedding.service'
-import { TestGenerationModule } from './generaion/generation.module'
-import { TestGenerationService } from './generaion/generation.service'
+import { TestGenerationModule } from './generation/generation.module'
+import { TestGenerationService } from './generation/generation.service'
+
+import { HealthController } from './health/health.controller'
 
 @Module({
   imports: [
@@ -22,10 +26,21 @@ import { TestGenerationService } from './generaion/generation.service'
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
       synchronize: false, // never true in production
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 10,
+    }]),
     EventEmitterModule.forRoot(),
     RagModule,
     AiModule,
     TestGenerationModule, // ← add
+  ],
+  controllers: [HealthController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule implements OnModuleInit {

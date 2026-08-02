@@ -1,4 +1,5 @@
 import { Project, SourceFile, ClassDeclaration } from 'ts-morph'
+import { BadRequestException } from '@nestjs/common'
 
 export interface ParsedMethod {
     name: string
@@ -23,7 +24,7 @@ export function parseTypeScriptFile(fileContent: string): ParsedClass {
 
     const classes = sourceFile.getClasses()
     if (classes.length === 0) {
-        throw new Error('No class found in file')
+        throw new BadRequestException('No class found in provided file')
     }
 
     const cls: ClassDeclaration = classes[0]

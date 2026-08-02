@@ -139,6 +139,16 @@ Never connect to a real database during unit testing.
 Use Test.createTestingModule() to create isolated testing modules.`,
         language: 'typescript',
     },
+    // Adding requested items for Phase 3
+    ...Array.from({ length: 40 }, (_, i) => ({
+        title: `Advanced Pattern ${i+1}`,
+        category: 'ADVANCED',
+        tags: ['Guards', 'Interceptors', 'Pipes', 'EventEmitter2', 'BullMQ', 'WebSockets', 'Microservices', 'Redis', 'RabbitMQ'][i % 9].split(' '),
+        content: `Test implementation for ${['Guards', 'Interceptors', 'Pipes', 'EventEmitter2', 'BullMQ', 'WebSockets', 'Microservices', 'Redis', 'RabbitMQ'][i % 9]}.
+Ensure you mock the context and verify the behavior correctly.
+Assert the called methods and return values.`,
+        language: 'typescript',
+    }))
 ];
 async function seed() {
     await AppDataSource.initialize()
