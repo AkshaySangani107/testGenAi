@@ -25,6 +25,7 @@
     "embed": "ts-node -e \"const { AppDataSource } = require('./src/data-source'); const { EmbeddingService } = require('./src/rag/embedding.service');\""
   },
   "dependencies": {
+    "@google/genai": "^2.13.0",
     "@google/generative-ai": "^0.24.1",
     "@nestjs/bull": "^11.0.4",
     "@nestjs/common": "^11.0.1",
