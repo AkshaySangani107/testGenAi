@@ -1,7 +1,9 @@
 import { Module, OnModuleInit } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { EventEmitterModule } from '@nestjs/event-emitter'
 import { RagModule } from './rag/rag.module'
+import { AiModule } from './ai/ai.module'
 import { EmbeddingService } from './rag/embedding.service'
 import { TestGenerationModule } from './generaion/generation.module'
 import { TestGenerationService } from './generaion/generation.service'
@@ -20,7 +22,9 @@ import { TestGenerationService } from './generaion/generation.service'
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
       synchronize: false, // never true in production
     }),
+    EventEmitterModule.forRoot(),
     RagModule,
+    AiModule,
     TestGenerationModule, // ← add
   ],
 })

@@ -1,5 +1,5 @@
-import OpenAI from "openai";
 import { Inject, Injectable, Logger } from "@nestjs/common";
+import { AiService } from '../ai/ai.service';
 import { InjectRepository } from "@nestjs/typeorm";
 import { ParsedClass, parseTypeScriptFile } from "src/parser/typescript.parser";
 import { EmbeddingService } from "src/rag/embedding.service";
@@ -9,15 +9,13 @@ import { Repository } from "typeorm";
 @Injectable()
 export class TestGenerationService {
     private readonly logger = new Logger(TestGenerationService.name)
-    private openai: OpenAI
 
     constructor(
+        private readonly aiService: AiService,
         @InjectRepository(KnowledgeBase)
         private readonly knowledgeRepo: Repository<KnowledgeBase>,
         @Inject(EmbeddingService) private readonly embeddingService: EmbeddingService
-    ) {
-        this.openai = new OpenAI({ apiKey: String(process.env.OPENAI_API_KEY) })
-    }
+    ) {}
 
     async generateTests(fileContent: string): Promise<string> {
         // Step 1: parse the file
@@ -37,23 +35,11 @@ export class TestGenerationService {
         // Step 4: build the prompt (replace {parsedClass} and {ragContext})
         const prompt = this.buildPrompt(parsedFile, ragResults);
         console.log(prompt)
-        // Step 5: call OpenAI LLM
-        const result = await this.openai.chat.completions.create({
-            model: 'gpt-5-mini', // Assuming user wants this literal identifier
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are a Senior Software Engineer generating NestJS tests.'
-                },
-                {
-                    role: 'user',
-                    content: "hello"
-                }
-            ]
-        })
+        // Step 5: call LLM Provider
+        const result = await this.aiService.generate(prompt);
 
         // Step 6: return generated test code as string
-        return result.choices[0].message.content || "";
+        return (typeof result === 'string') ? result : "";
     }
 
 

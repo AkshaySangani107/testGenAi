@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import OpenAI from "openai";
+import { AiService } from '../ai/ai.service'
 import { InjectRepository } from '@nestjs/typeorm'
 import { IsNull, Repository } from 'typeorm'
 import { KnowledgeBase } from './entities/knowledge-base.entity'
@@ -7,23 +7,16 @@ import { KnowledgeBase } from './entities/knowledge-base.entity'
 @Injectable()
 export class EmbeddingService {
     private readonly logger = new Logger(EmbeddingService.name)
-    private openai: OpenAI
 
     constructor(
+        private readonly aiService: AiService,
         @InjectRepository(KnowledgeBase)
         private readonly knowledgeRepo: Repository<KnowledgeBase>
-    ) {
-        this.openai = new OpenAI({ apiKey: String(process.env.OPENAI_API_KEY) })
-    }
+    ) {}
 
     // ── Convert text → vector numbers ──
     async generateEmbedding(text: string): Promise<number[]> {
-        const result = await this.openai.embeddings.create({
-            model: 'text-embedding-3-small',
-            input: text,
-            dimensions: 768 // Match Gemini 001's dimensions for backward DB compatibility
-        })
-        return result.data[0].embedding;
+        return await this.aiService.embed(text);
     }
 
     // ── Embed all seeded knowledge items ──
