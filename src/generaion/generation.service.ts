@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ParsedClass, parseTypeScriptFile } from "src/parser/typescript.parser";
@@ -9,14 +9,14 @@ import { Repository } from "typeorm";
 @Injectable()
 export class TestGenerationService {
     private readonly logger = new Logger(TestGenerationService.name)
-    private genAI: GoogleGenAI
+    private openai: OpenAI
 
     constructor(
         @InjectRepository(KnowledgeBase)
         private readonly knowledgeRepo: Repository<KnowledgeBase>,
         @Inject(EmbeddingService) private readonly embeddingService: EmbeddingService
     ) {
-        this.genAI = new GoogleGenAI({ apiKey: String(process.env.GEMINI_API_KEY) })
+        this.openai = new OpenAI({ apiKey: String(process.env.OPENAI_API_KEY) })
     }
 
     async generateTests(fileContent: string): Promise<string> {
@@ -37,13 +37,23 @@ export class TestGenerationService {
         // Step 4: build the prompt (replace {parsedClass} and {ragContext})
         const prompt = this.buildPrompt(parsedFile, ragResults);
         console.log(prompt)
-        // Step 5: call Gemini LLM
-        const result = await this.genAI.models.generateContent({
-            model: 'gemini-2.5-pro',
-            contents: "hello"
+        // Step 5: call OpenAI LLM
+        const result = await this.openai.chat.completions.create({
+            model: 'gpt-5-mini', // Assuming user wants this literal identifier
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a Senior Software Engineer generating NestJS tests.'
+                },
+                {
+                    role: 'user',
+                    content: "hello"
+                }
+            ]
         })
+
         // Step 6: return generated test code as string
-        return result.text || "";
+        return result.choices[0].message.content || "";
     }
 
 
