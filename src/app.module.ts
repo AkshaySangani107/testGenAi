@@ -1,8 +1,12 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { RagModule } from './rag/rag.module';
-import { EmbeddingService } from './rag/embedding.service';
+import { EventEmitterModule } from '@nestjs/event-emitter'
+import { RagModule } from './rag/rag.module'
+import { AiModule } from './ai/ai.module'
+import { EmbeddingService } from './rag/embedding.service'
+import { TestGenerationModule } from './generaion/generation.module'
+import { TestGenerationService } from './generaion/generation.service'
 
 @Module({
   imports: [
@@ -18,27 +22,50 @@ import { EmbeddingService } from './rag/embedding.service';
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
       synchronize: false, // never true in production
     }),
+    EventEmitterModule.forRoot(),
     RagModule,
+    AiModule,
+    TestGenerationModule, // ← add
   ],
 })
 export class AppModule implements OnModuleInit {
-  constructor(private embeddingService: EmbeddingService) { }
+  constructor(
+    private embeddingService: EmbeddingService,
+    private testGenerationService: TestGenerationService
+  ) { }
 
   async onModuleInit() {
-    // Embed all knowledge on startup
-    await this.embeddingService.embedAllKnowledge()
+    // await this.embeddingService.embedAllKnowledge()
 
+    // // Test generation
+    // const testCode = await this.testGenerationService.generateTests(`
+    //   import { Injectable } from '@nestjs/common'
+    //   import { InjectRepository } from '@nestjs/typeorm'
+    //   import { Repository } from 'typeorm'
 
-    // Test search
-    const results = await this.embeddingService.searchSimilar(
-      'how to test when user is not found in NestJS service',
-      'typescript',
-      3
-    )
+    //   @Injectable()
+    //   export class PaymentService {
+    //     constructor(
+    //       @InjectRepository(Payment)
+    //       private readonly paymentRepo: Repository<Payment>
+    //     ) {}
 
-    console.log('Search results:')
-    results.forEach(r => {
-      console.log(`[${(r.similarity * 100).toFixed(1)}%] ${r.title}`)
-    })
+    //     async processPayment(userId: string, amount: number): Promise<void> {
+    //       if (!userId) throw new BadRequestException('UserId required')
+    //       if (amount <= 0) throw new BadRequestException('Invalid amount')
+    //       const payment = this.paymentRepo.create({ userId, amount })
+    //       await this.paymentRepo.save(payment)
+    //     }
+
+    //     async findAll(): Promise<Payment[]> {
+    //       const payments = await this.paymentRepo.find()
+    //       if (payments.length === 0) throw new NotFoundException('No payments')
+    //       return payments
+    //     }
+    //   }
+    // `)
+
+    // console.log('Generated Tests:')
+    // console.log(testCode)
   }
 }

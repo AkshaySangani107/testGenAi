@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { AiService } from '../ai/ai.service'
 import { InjectRepository } from '@nestjs/typeorm'
 import { IsNull, Repository } from 'typeorm'
 import { KnowledgeBase } from './entities/knowledge-base.entity'
@@ -7,22 +7,16 @@ import { KnowledgeBase } from './entities/knowledge-base.entity'
 @Injectable()
 export class EmbeddingService {
     private readonly logger = new Logger(EmbeddingService.name)
-    private genAI: GoogleGenerativeAI
 
     constructor(
+        private readonly aiService: AiService,
         @InjectRepository(KnowledgeBase)
         private readonly knowledgeRepo: Repository<KnowledgeBase>
-    ) {
-        this.genAI = new GoogleGenerativeAI(String(process.env.GEMINI_API_KEY))
-    }
+    ) {}
 
     // ── Convert text → vector numbers ──
     async generateEmbedding(text: string): Promise<number[]> {
-        const model = this.genAI.getGenerativeModel({
-            model: 'gemini-embedding-001'
-        })
-        const result = await model.embedContent(text)
-        return result.embedding.values
+        return await this.aiService.embed(text);
     }
 
     // ── Embed all seeded knowledge items ──
@@ -30,6 +24,10 @@ export class EmbeddingService {
         const items = await this.knowledgeRepo.find({
             where: { embedding: IsNull() }
         })
+        if (items.length === 0) {
+            this.logger.log('All items already embedded — skipping')
+            return  // ← exits early, saves quota
+        }
 
         this.logger.log(`Found ${items.length} items to embed`)
 
@@ -55,13 +53,14 @@ export class EmbeddingService {
         query: string,
         language: string,
         limit: number = 5
-    ): Promise<{ content: string; title: string; similarity: number }[]> {
+    ): Promise<{ content: string; title: string; tags: string[]; category: string; similarity: number }[]> {
         const queryEmbedding = await this.generateEmbedding(query)
 
         const results = await this.knowledgeRepo.query(
             `SELECT 
         title,
         content,
+        tags,
         category,
         1 - (embedding::vector <=> $1::vector) as similarity
        FROM knowledge_base
