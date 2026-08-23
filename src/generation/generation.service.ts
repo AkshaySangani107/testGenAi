@@ -5,6 +5,7 @@ import { ParsedClass, parseTypeScriptFile } from "src/parser/typescript.parser";
 import { EmbeddingService } from "src/rag/embedding.service";
 import { KnowledgeBase } from "src/rag/entities/knowledge-base.entity";
 import { Repository } from "typeorm";
+import { EvaluateRequestDto } from "./dto/evaluate.request.dto";
 
 @Injectable()
 export class TestGenerationService {
@@ -46,6 +47,8 @@ export class TestGenerationService {
         const code = (typeof result === 'string') ? result : "";
         return this.cleanOutput(code);
     }
+
+
 
 
     //     private buildPrompt(
@@ -244,4 +247,72 @@ Dependencies: ${parsedClass.injectedDependencies.join(', ')}
 Methods:
   ${methods}`
     }
+
+
+    async evaluateQuality(
+        input: EvaluateRequestDto
+    ): Promise<{ score: number; issues: any[] }> {
+        console.log("Evaluating quality...", input)
+        const prompt = this.buildEvaluationPrompt(input)
+        console.log("Prompt: ", prompt)
+        const result = await this.aiService.generate(prompt)
+        console.log("Result: ", result)
+        const jsonString = typeof result === 'string' ? result : ''
+        console.log("Json String: ", jsonString)
+        try {
+            const cleaned = jsonString
+                .replace(/^```json\n?/i, '')
+                .replace(/^```\n?/i, '')
+                .replace(/\n?```$/i, '')
+                .trim()
+
+            return JSON.parse(cleaned)
+        } catch {
+            return {
+                score: 22,
+                issues: [{
+                    category: 'evaluation',
+                    severity: 'low',
+                    message: 'LLM evaluator returned invalid response'
+                }]
+            }
+        }
+    }
+
+
+    private buildEvaluationPrompt(input: EvaluateRequestDto): string {
+        const { specContent, compactClass } = input
+
+        return `You are a senior NestJS engineer reviewing a generated test file.
+
+SOURCE CLASS:
+${compactClass}
+
+GENERATED SPEC:
+${specContent.slice(0, 2000)}
+
+Evaluate on these criteria:
+- Dependency mocking (10pts): Are all deps properly mocked?
+- Mock behavior (8pts): Do mocks represent real behavior?
+- Assertions (7pts): Are assertions meaningful and strong?
+- Async handling (5pts): Are async methods tested correctly?
+- NestJS patterns (5pts): Uses Test.createTestingModule()?
+- Maintainability (5pts): Is code readable and organized?
+- Pattern adherence (5pts): Follows NestJS testing conventions?
+
+Total: 45 points.
+
+Return ONLY valid JSON, no markdown, no explanation:
+{
+  "score": <number 0-45>,
+  "issues": [
+    {
+      "category": "mocking|assertion|async|patterns|maintainability",
+      "severity": "low|medium|high",
+      "message": "<specific actionable issue>"
+    }
+  ]
+}`
+    }
+
 }
