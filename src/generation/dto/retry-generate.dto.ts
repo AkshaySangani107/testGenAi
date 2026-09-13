@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsString, ArrayMinSize } from 'class-validator'
+import { IsArray, IsNotEmpty, IsString, ArrayMinSize, IsOptional } from 'class-validator'
 
 export class RetryGenerateDto {
     @IsString()
@@ -13,4 +13,8 @@ export class RetryGenerateDto {
     @ArrayMinSize(1)
     @IsString({ each: true })
     feedback: string[]
+
+    @IsOptional()
+    @IsString()
+    dependencyContext: string
 }

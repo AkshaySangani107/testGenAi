@@ -42,7 +42,7 @@ export class TestGenerationService {
     return cleaned;
   }
 
-  async generateTests(fileContent: string): Promise<string> {
+  async generateTests(fileContent: string, dependencyContext: string): Promise<string> {
     // Step 1: parse the file
     const parsedFile = parseTypeScriptFile(fileContent);
 
@@ -59,7 +59,7 @@ export class TestGenerationService {
     );
 
     // Step 4: build the prompt (replace {parsedClass} and {ragContext})
-    const prompt = this.buildPrompt(parsedFile, ragResults, fileContent);
+    const prompt = this.buildPrompt(parsedFile, ragResults, fileContent, dependencyContext);
     // Step 5: call LLM Provider
     const result = await this.aiService.generate(prompt);
 
@@ -72,6 +72,7 @@ export class TestGenerationService {
     parsedClass: ParsedClass,
     ragContext: { content: string; title: string }[],
     sourceContent: string,
+    dependencyContext?: string
   ): string {
     const compactClass = this.buildCompactClass(parsedClass, sourceContent)
     const patterns = ragContext
@@ -82,33 +83,35 @@ export class TestGenerationService {
       .replace('Service', '')
       .toLowerCase()
 
+    const depSection = dependencyContext
+      ? `PROJECT DEPENDENCIES (use for correct imports and method names):
+${dependencyContext.slice(0, 4000)}
+
+`
+      : ''
+
     return `You are a senior NestJS engineer generating Jest unit tests.
 
 CLASS:
 ${compactClass}
 
-PATTERNS:
+${depSection}PATTERNS:
 ${patterns}
 
 CRITICAL RULES:
 - Import service: import { ${parsedClass.className} } from './${serviceFileName}.service'
-- Copy ALL imports EXACTLY from ACTUAL IMPORTS above
+- Copy ALL other import paths EXACTLY from PROJECT DEPENDENCIES above
 - For ALL DTOs: const dto = {} as unknown as DtoType
-- For ALL response types: const res = {} as unknown as ResponseType  
+- For ALL response types: const res = {} as unknown as ResponseType
 - For ALL mocks: const mock = {} as any
-- NEVER use Partial<ClassName>
-- NEVER invent method names
+- NEVER use Partial<ClassName> — always use as any
+- NEVER invent method names — use ONLY methods visible in PROJECT DEPENDENCIES
 - For AutoMapper: { provide: getMapperToken(), useValue: mockMapper }
 - Import getMapperToken from '@automapper/nestjs'
-- NEVER use Mapper directly as provider token
-- Look at the CLASS METHODS section carefully
- - Mock ONLY methods that are actually called in the service implementation
- - Method names in mocks must match EXACTLY what the service calls
- - If service calls this.repo.allAsync() — mock must have allAsync: jest.fn()
+- Mock method names must EXACTLY match what you see in the dependency files
 
 OUTPUT: ONLY valid TypeScript. NO markdown. NO backticks.`
   }
-
   private buildCompactClass(
     parsedClass: ParsedClass,
     sourceContent: string
@@ -228,6 +231,7 @@ Return ONLY valid JSON, no markdown, no explanation:
       ragResults,
       dto.previousSpec,
       dto.feedback,
+      dto.dependencyContext
     );
     // Step 5: call LLM
     const result = await this.aiService.generate(prompt);
@@ -240,18 +244,26 @@ Return ONLY valid JSON, no markdown, no explanation:
     parsedClass: ParsedClass,
     ragContext: any[],
     previousSpec: string,
-    feedback: string[]
+    feedback: string[],
+    dependencyContext?: string  // ← add
   ): string {
     const serviceFileName = parsedClass.className
       .replace('Service', '')
       .toLowerCase()
+
+    const depSection = dependencyContext
+      ? `PROJECT DEPENDENCIES (use for correct imports and method names):
+${dependencyContext.slice(0, 3000)}
+
+`
+      : ''
 
     return `You are a senior NestJS engineer fixing a generated test file.
 
 CLASS:
 ${this.buildCompactClass(parsedClass, '')}
 
-PREVIOUS TEST (fix this):
+${depSection}PREVIOUS TEST (fix this):
 ${previousSpec.slice(0, 1000)}
 
 ISSUES TO FIX:
@@ -259,19 +271,14 @@ ${feedback.slice(0, 4).map((f, i) => `${i + 1}. ${f}`).join('\n')}
 
 CRITICAL RULES:
 - Import service: import { ${parsedClass.className} } from './${serviceFileName}.service'
-- Copy ALL other imports EXACTLY from CLASS section above
+- Copy ALL imports EXACTLY from PROJECT DEPENDENCIES above
 - For ALL DTOs: const dto = {} as unknown as DtoType
 - For ALL response types: const res = {} as unknown as ResponseType
 - For ALL mocks: const mock = {} as any
-- NEVER use Partial<ClassName> — always use as any
-- NEVER invent method names
+- NEVER use Partial<ClassName>
+- NEVER invent method names — only use methods from PROJECT DEPENDENCIES
 - For AutoMapper: { provide: getMapperToken(), useValue: mockMapper }
-- Import getMapperToken from '@automapper/nestjs'
-- NEVER use Mapper directly as provider token
-- Look at CLASS METHODS above carefully
-- Mock ONLY methods actually called in the service
-- Method names in mocks must EXACTLY match what service calls
-- If service calls this.repo.allAsync() → mock needs allAsync: jest.fn()
+- Mock method names must EXACTLY match dependency files
 
 IMPORTANT: Regenerate COMPLETE file. Fix ALL issues.
 OUTPUT: ONLY valid TypeScript. NO markdown. NO backticks.`

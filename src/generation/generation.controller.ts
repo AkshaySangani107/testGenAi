@@ -16,7 +16,7 @@ export class GenerationController {
 
     @Post()
     async generate(@Body() body: GenerateTestDto): Promise<string> {
-        return this.generationService.generateTests(body.fileContent)
+        return this.generationService.generateTests(body.fileContent , body.dependencyContext)
     }
 
     @Post('evaluate/quality')
