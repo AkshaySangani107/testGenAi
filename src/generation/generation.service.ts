@@ -42,7 +42,10 @@ export class TestGenerationService {
     return cleaned;
   }
 
-  async generateTests(fileContent: string): Promise<string> {
+  async generateTests(
+    fileContent: string,
+    dependencyContext?: string,
+  ): Promise<string> {
     // Step 1: parse the file
     const parsedFile = parseTypeScriptFile(fileContent);
     this.logger.log(`Generating tests for class: ${parsedFile.className}`);
@@ -63,7 +66,12 @@ export class TestGenerationService {
     );
 
     // Step 4: build the prompt (replace {parsedClass} and {ragContext})
-    const prompt = this.buildPrompt(parsedFile, ragResults, fileContent);
+    const prompt = this.buildPrompt(
+      parsedFile,
+      ragResults,
+      fileContent,
+      dependencyContext,
+    );
     // Step 5: call LLM Provider
     const result = await this.aiService.generate(prompt);
 
@@ -77,41 +85,50 @@ export class TestGenerationService {
     parsedClass: ParsedClass,
     ragContext: { content: string; title: string }[],
     sourceContent: string,
+    dependencyContext?: string,
   ): string {
-    const compactClass = this.buildCompactClass(parsedClass, sourceContent)
+    const compactClass = this.buildCompactClass(parsedClass, sourceContent);
     const patterns = ragContext
-      .map(r => `- ${r.title}: ${r.content.slice(0, 150)}`)
-      .join('\n')
+      .map((r) => `- ${r.title}: ${r.content.slice(0, 150)}`)
+      .join('\n');
 
     const serviceFileName = parsedClass.className
       .replace('Service', '')
-      .toLowerCase()
+      .toLowerCase();
+
+    const dependencySection = dependencyContext
+      ? `PROJECT LEVEL-1 DEPENDENCY MOCK CONTRACT:
+${dependencyContext}
+
+`
+      : '';
 
     return `You are a senior NestJS engineer generating Jest unit tests.
 
 CLASS:
 ${compactClass}
 
-PATTERNS:
+${dependencySection}PATTERNS:
 ${patterns}
 
 CRITICAL RULES:
 - Import service: import { ${parsedClass.className} } from './${serviceFileName}.service'
 - Copy ALL imports EXACTLY from ACTUAL IMPORTS above
+- UNIT TEST BOUNDARY: Mock ONLY direct constructor dependencies of ${parsedClass.className}. DO NOT import or provide nested/transitive dependencies in Test.createTestingModule.
 - For ALL DTOs: const dto = {} as unknown as DtoType
 - For ALL response types: const res = {} as unknown as ResponseType  
 - For ALL mocks: const mock = {} as any
 - NEVER use Partial<ClassName>
-- NEVER invent method names
+- NEVER invent method names — use ONLY methods called by the service as specified in the DEPENDENCY CONTRACT above
 - For AutoMapper: { provide: getMapperToken(), useValue: mockMapper }
 - Import getMapperToken from '@automapper/nestjs'
 - NEVER use Mapper directly as provider token
 - Look at the CLASS METHODS section carefully
  - Mock ONLY methods that are actually called in the service implementation
- - Method names in mocks must match EXACTLY what the service calls
- - If service calls this.repo.allAsync() — mock must have allAsync: jest.fn()
+ - Method names in mocks must match EXACTLY what the service calls (e.g., allAsync, createAsync, getWithAsync)
+ - When uncertain about method names or return values: use jest.fn().mockResolvedValue({} as any)
 
-OUTPUT: ONLY valid TypeScript. NO markdown. NO backticks.`
+OUTPUT: ONLY valid TypeScript. NO markdown. NO backticks.`;
   }
 
   private buildCompactClass(
@@ -242,6 +259,7 @@ Return ONLY valid JSON, no markdown, no explanation:
       ragResults,
       dto.previousSpec,
       dto.feedback,
+      dto.dependencyContext,
     );
     // Step 5: call LLM
     const result = await this.aiService.generate(prompt);
@@ -255,18 +273,26 @@ Return ONLY valid JSON, no markdown, no explanation:
     parsedClass: ParsedClass,
     ragContext: any[],
     previousSpec: string,
-    feedback: string[]
+    feedback: string[],
+    dependencyContext?: string,
   ): string {
     const serviceFileName = parsedClass.className
       .replace('Service', '')
-      .toLowerCase()
+      .toLowerCase();
+
+    const dependencySection = dependencyContext
+      ? `PROJECT LEVEL-1 DEPENDENCY MOCK CONTRACT:
+${dependencyContext}
+
+`
+      : '';
 
     return `You are a senior NestJS engineer fixing a generated test file.
 
 CLASS:
 ${this.buildCompactClass(parsedClass, '')}
 
-PREVIOUS TEST (fix this):
+${dependencySection}PREVIOUS TEST (fix this):
 ${previousSpec.slice(0, 1000)}
 
 ISSUES TO FIX:
@@ -275,20 +301,21 @@ ${feedback.slice(0, 4).map((f, i) => `${i + 1}. ${f}`).join('\n')}
 CRITICAL RULES:
 - Import service: import { ${parsedClass.className} } from './${serviceFileName}.service'
 - Copy ALL other imports EXACTLY from CLASS section above
+- UNIT TEST BOUNDARY: Mock ONLY direct constructor dependencies of ${parsedClass.className}. DO NOT import or provide nested/transitive dependencies in Test.createTestingModule.
 - For ALL DTOs: const dto = {} as unknown as DtoType
 - For ALL response types: const res = {} as unknown as ResponseType
 - For ALL mocks: const mock = {} as any
 - NEVER use Partial<ClassName> — always use as any
-- NEVER invent method names
+- NEVER invent method names — use ONLY methods called by the service as specified in the DEPENDENCY CONTRACT above
 - For AutoMapper: { provide: getMapperToken(), useValue: mockMapper }
 - Import getMapperToken from '@automapper/nestjs'
 - NEVER use Mapper directly as provider token
 - Look at CLASS METHODS above carefully
 - Mock ONLY methods actually called in the service
-- Method names in mocks must EXACTLY match what service calls
+- Method names in mocks must EXACTLY match what service calls (e.g. allAsync, createAsync, getWithAsync)
 - If service calls this.repo.allAsync() → mock needs allAsync: jest.fn()
 
 IMPORTANT: Regenerate COMPLETE file. Fix ALL issues.
-OUTPUT: ONLY valid TypeScript. NO markdown. NO backticks.`
+OUTPUT: ONLY valid TypeScript. NO markdown. NO backticks.`;
   }
 }
