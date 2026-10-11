@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe } from '@nestjs/common'
+import { Logger, ValidationPipe } from '@nestjs/common'
 import { AppModule } from './app.module'
 import * as express from 'express'
 
@@ -16,7 +16,7 @@ async function bootstrap() {
   server.keepAliveTimeout = 300000
   server.headersTimeout = 301000
 
-  console.log('TestGenAI backend running on port 3000')
+  Logger.log('TestGenAI backend running on port 3000', 'Bootstrap')
 }
 
 bootstrap()

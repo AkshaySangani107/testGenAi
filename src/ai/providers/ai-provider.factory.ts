@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { OpenAIProvider } from './openai.provider';
@@ -18,7 +19,7 @@ export const aiProviderFactory = {
     // As per user request, we DO NOT rely on .env for defaults if they aren't provided safely.
     // The user will manage their own .env files.
     const provider = config.get<string>('ACTIVE_AI_PROVIDER', process.env.ACTIVE_AI_PROVIDER ?? "openai").toLowerCase();
-    console.log('Using provider:', provider);
+    Logger.log(`Using provider: ${provider}`, 'AiProviderFactory');
     switch (provider) {
       case 'anthropic':
         return new AnthropicProvider(config.getOrThrow('ANTHROPIC_API_KEY'), eventEmitter);

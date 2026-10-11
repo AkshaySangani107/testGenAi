@@ -45,6 +45,7 @@ export class TestGenerationService {
   async generateTests(fileContent: string): Promise<string> {
     // Step 1: parse the file
     const parsedFile = parseTypeScriptFile(fileContent);
+    this.logger.log(`Generating tests for class: ${parsedFile.className}`);
 
     // Step 2: build search query from parsed result
     const searchQuery = `NestJS ${parsedFile.className} service 
@@ -57,6 +58,9 @@ export class TestGenerationService {
       'typescript',
       3,
     );
+    this.logger.log(
+      `Retrieved ${ragResults.length} RAG reference patterns for ${parsedFile.className}`,
+    );
 
     // Step 4: build the prompt (replace {parsedClass} and {ragContext})
     const prompt = this.buildPrompt(parsedFile, ragResults, fileContent);
@@ -65,6 +69,7 @@ export class TestGenerationService {
 
     // Step 6: return generated test code as string
     const code = typeof result === 'string' ? result : '';
+    this.logger.log(`Test generation completed for ${parsedFile.className}`);
     return this.cleanOutput(code);
   }
 
@@ -149,6 +154,7 @@ CRITICAL MOCK RULES:
   async evaluateQuality(
     input: EvaluateRequestDto,
   ): Promise<{ score: number; issues: any[] }> {
+    this.logger.log('Evaluating test quality using LLM');
     const prompt = this.buildEvaluationPrompt(input);
     const result = await this.aiService.generate(prompt);
     const jsonString = typeof result === 'string' ? result : '';
@@ -159,8 +165,13 @@ CRITICAL MOCK RULES:
         .replace(/\n?```$/i, '')
         .trim();
 
-      return JSON.parse(cleaned);
-    } catch {
+      const parsed = JSON.parse(cleaned);
+      this.logger.log(`LLM evaluation completed. Score: ${parsed.score}/45`);
+      return parsed;
+    } catch (error: any) {
+      this.logger.warn(
+        `LLM quality evaluation returned non-JSON response: ${error?.message}`,
+      );
       return {
         score: 22,
         issues: [
@@ -212,6 +223,9 @@ Return ONLY valid JSON, no markdown, no explanation:
   async retryGenerateTests(dto: RetryGenerateDto): Promise<string> {
     // Step 1: parse file
     const parsedFile = parseTypeScriptFile(dto.fileContent);
+    this.logger.log(
+      `Retrying test generation for ${parsedFile.className} with ${dto.feedback?.length || 0} feedback items`,
+    );
     // Step 2: build search query
     const searchQuery = `NestJS ${parsedFile.className} service
             with methods: ${parsedFile.methods.map((m) => m.name).join(', ')}
@@ -233,6 +247,7 @@ Return ONLY valid JSON, no markdown, no explanation:
     const result = await this.aiService.generate(prompt);
     // Step 6: clean and return
     const code = typeof result === 'string' ? result : '';
+    this.logger.log(`Retry generation completed for ${parsedFile.className}`);
     return this.cleanOutput(code);
   }
 
