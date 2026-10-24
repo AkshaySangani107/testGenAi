@@ -5,7 +5,7 @@ export async function withResilience<T>(
   logger: Logger,
   provider: string,
   retries = 3,
-  timeoutMs = 15000
+  timeoutMs = Number(process.env.AI_TIMEOUT_MS) || 60000
 ): Promise<T> {
   let attempt = 0;
   

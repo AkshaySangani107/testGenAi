@@ -13,8 +13,9 @@ export class GeminiProvider extends BaseAiProvider {
   }
 
   protected async doGenerate(prompt: string, options?: AiGenerateOptions): Promise<InternalAiResponse> {
+    const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
     const response = await this.client.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model,
       contents: prompt,
     });
     
