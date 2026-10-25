@@ -6,12 +6,15 @@ import { EvaluationIssue } from './types/evaluation.type';
 import { RetryGenerateDto } from './dto/retry-generate.dto';
 import { SpecCacheService } from './cache/spec-cache.service';
 import { SaveSpecCacheDto } from './dto/save-cache.dto';
+import { SpecExpanderService } from './expansion/spec-expander.service';
+import { ExpandTestDto } from './dto/expand-test.dto';
 
 @Controller('generate')
 export class GenerationController {
   constructor(
     private readonly generationService: TestGenerationService,
     private readonly cacheService: SpecCacheService,
+    private readonly expanderService: SpecExpanderService,
   ) {}
 
   @Get('health')
@@ -37,6 +40,11 @@ export class GenerationController {
   @Post('retry')
   async retryGenerate(@Body() body: RetryGenerateDto): Promise<string> {
     return this.generationService.retryGenerateTests(body);
+  }
+
+  @Post('expand')
+  async expandSpec(@Body() body: ExpandTestDto): Promise<string> {
+    return this.expanderService.expandSpec(body);
   }
 
   @Post('cache/save')
