@@ -1,14 +1,14 @@
-import { Module } from '@nestjs/common'
-import { APP_GUARD } from '@nestjs/core'
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
-import { ConfigModule } from '@nestjs/config'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { EventEmitterModule } from '@nestjs/event-emitter'
-import { RagModule } from './rag/rag.module'
-import { AiModule } from './ai/ai.module'
-import { TestGenerationModule } from './generation/generation.module'
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { RagModule } from './rag/rag.module';
+import { AiModule } from './ai/ai.module';
+import { TestGenerationModule } from './generation/generation.module';
 
-import { HealthController } from './health/health.controller'
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -24,10 +24,12 @@ import { HealthController } from './health/health.controller'
       migrations: [__dirname + '/migrations/*{.ts,.js}'],
       synchronize: false, // never true in production
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 10,
+      },
+    ]),
     EventEmitterModule.forRoot(),
     RagModule,
     AiModule,

@@ -1,16 +1,24 @@
-import { SeedDefinition } from '../types/seed-definition.type'
+import { SeedDefinition } from '../types/seed-definition.type';
 
-export const REDIS_CACHE_SERVICE_SEED_VERSION = 1
+export const REDIS_CACHE_SERVICE_SEED_VERSION = 1;
 
 export const redisCacheServiceSeed: SeedDefinition = {
-    key: 'SEED_EXAMPLE_REDIS_CACHE_SERVICE',
-    version: REDIS_CACHE_SERVICE_SEED_VERSION,
-    title: 'Complete Service Spec — Redis Cache + Pagination',
-    category: 'SERVICE',
-    language: 'typescript',
-    contentType: 'EXAMPLE',
-    tags: ['redis', 'cache', 'CACHE_MANAGER', 'pagination', 'findAndCount', 'skip', 'take'],
-    content: `import { Test, TestingModule } from '@nestjs/testing'
+  key: 'SEED_EXAMPLE_REDIS_CACHE_SERVICE',
+  version: REDIS_CACHE_SERVICE_SEED_VERSION,
+  title: 'Complete Service Spec — Redis Cache + Pagination',
+  category: 'SERVICE',
+  language: 'typescript',
+  contentType: 'EXAMPLE',
+  tags: [
+    'redis',
+    'cache',
+    'CACHE_MANAGER',
+    'pagination',
+    'findAndCount',
+    'skip',
+    'take',
+  ],
+  content: `import { Test, TestingModule } from '@nestjs/testing'
 import { CACHE_MANAGER } from '@nestjs/cache-manager'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { ProductService } from './product.service'
@@ -88,4 +96,4 @@ describe('ProductService', () => {
         })
     })
 })`,
-}
+};

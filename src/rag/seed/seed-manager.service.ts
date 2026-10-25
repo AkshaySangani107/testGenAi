@@ -65,7 +65,9 @@ export class SeedManagerService implements OnApplicationBootstrap {
         await this.embeddingService.embedAllKnowledge();
         this.logger.log('✅ Seed synchronization complete');
       } else {
-        this.logger.log('All seed files are up to date with their respective versions. Skipping seed.');
+        this.logger.log(
+          'All seed files are up to date with their respective versions. Skipping seed.',
+        );
       }
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : String(error);
@@ -95,7 +97,7 @@ export class SeedManagerService implements OnApplicationBootstrap {
     );
 
     for (const item of knowledgeData) {
-      let record = await this.knowledgeRepo.findOne({
+      const record = await this.knowledgeRepo.findOne({
         where: { title: item.title, category: item.category },
       });
 
@@ -129,7 +131,16 @@ export class SeedManagerService implements OnApplicationBootstrap {
    * Synchronizes an individual spec example seed if its version increased
    */
   private async syncIndividualSeed(seedDef: SeedDefinition): Promise<boolean> {
-    const { key, version: targetVersion, title, category, language, contentType, tags, content } = seedDef;
+    const {
+      key,
+      version: targetVersion,
+      title,
+      category,
+      language,
+      contentType,
+      tags,
+      content,
+    } = seedDef;
 
     const existingRecord = await this.seedMetadataRepo.findOne({
       where: { key },
@@ -145,7 +156,7 @@ export class SeedManagerService implements OnApplicationBootstrap {
       `Updating individual seed [${key}] (version ${currentVersion} -> ${targetVersion})...`,
     );
 
-    let record = await this.knowledgeRepo.findOne({
+    const record = await this.knowledgeRepo.findOne({
       where: { title, contentType },
     });
 

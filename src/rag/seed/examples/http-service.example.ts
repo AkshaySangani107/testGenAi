@@ -1,16 +1,23 @@
-import { SeedDefinition } from '../types/seed-definition.type'
+import { SeedDefinition } from '../types/seed-definition.type';
 
-export const HTTP_SERVICE_SEED_VERSION = 1
+export const HTTP_SERVICE_SEED_VERSION = 1;
 
 export const httpServiceSeed: SeedDefinition = {
-    key: 'SEED_EXAMPLE_HTTP_SERVICE',
-    version: HTTP_SERVICE_SEED_VERSION,
-    title: 'Complete Service Spec — ConfigService + HttpService (Axios)',
-    category: 'SERVICE',
-    language: 'typescript',
-    contentType: 'EXAMPLE',
-    tags: ['ConfigService', 'HttpService', 'axios', 'external-api', 'config', 'http'],
-    content: `import { Test, TestingModule } from '@nestjs/testing'
+  key: 'SEED_EXAMPLE_HTTP_SERVICE',
+  version: HTTP_SERVICE_SEED_VERSION,
+  title: 'Complete Service Spec — ConfigService + HttpService (Axios)',
+  category: 'SERVICE',
+  language: 'typescript',
+  contentType: 'EXAMPLE',
+  tags: [
+    'ConfigService',
+    'HttpService',
+    'axios',
+    'external-api',
+    'config',
+    'http',
+  ],
+  content: `import { Test, TestingModule } from '@nestjs/testing'
 import { HttpService } from '@nestjs/axios'
 import { ConfigService } from '@nestjs/config'
 import { of, throwError } from 'rxjs'
@@ -74,4 +81,4 @@ describe('PaymentService', () => {
         })
     })
 })`,
-}
+};

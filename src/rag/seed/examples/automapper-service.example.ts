@@ -1,16 +1,23 @@
-import { SeedDefinition } from '../types/seed-definition.type'
+import { SeedDefinition } from '../types/seed-definition.type';
 
-export const AUTOMAPPER_SERVICE_SEED_VERSION = 1
+export const AUTOMAPPER_SERVICE_SEED_VERSION = 1;
 
 export const automapperServiceSeed: SeedDefinition = {
-    key: 'SEED_EXAMPLE_AUTOMAPPER_SERVICE',
-    version: AUTOMAPPER_SERVICE_SEED_VERSION,
-    title: 'Complete Service Spec — AutoMapper + Multiple Dependencies',
-    category: 'SERVICE',
-    language: 'typescript',
-    contentType: 'EXAMPLE',
-    tags: ['AutoMapper', 'mapper', 'getMapperToken', 'map', 'mapArray', 'multiple-deps'],
-    content: `import { Test, TestingModule } from '@nestjs/testing'
+  key: 'SEED_EXAMPLE_AUTOMAPPER_SERVICE',
+  version: AUTOMAPPER_SERVICE_SEED_VERSION,
+  title: 'Complete Service Spec — AutoMapper + Multiple Dependencies',
+  category: 'SERVICE',
+  language: 'typescript',
+  contentType: 'EXAMPLE',
+  tags: [
+    'AutoMapper',
+    'mapper',
+    'getMapperToken',
+    'map',
+    'mapArray',
+    'multiple-deps',
+  ],
+  content: `import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { getMapperToken } from '@automapper/nestjs'
 import { NotFoundException } from '@nestjs/common'
@@ -95,4 +102,4 @@ describe('PostService', () => {
         })
     })
 })`,
-}
+};

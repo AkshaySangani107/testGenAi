@@ -1,16 +1,23 @@
-import { SeedDefinition } from '../types/seed-definition.type'
+import { SeedDefinition } from '../types/seed-definition.type';
 
-export const CRUD_SERVICE_SEED_VERSION = 1
+export const CRUD_SERVICE_SEED_VERSION = 1;
 
 export const crudServiceSeed: SeedDefinition = {
-    key: 'SEED_EXAMPLE_CRUD_SERVICE',
-    version: CRUD_SERVICE_SEED_VERSION,
-    title: 'Complete CRUD Service Spec — TypeORM Repository',
-    category: 'SERVICE',
-    language: 'typescript',
-    contentType: 'EXAMPLE',
-    tags: ['crud', 'typeorm', 'repository', 'NotFoundException', 'save', 'findOne'],
-    content: `import { Test, TestingModule } from '@nestjs/testing'
+  key: 'SEED_EXAMPLE_CRUD_SERVICE',
+  version: CRUD_SERVICE_SEED_VERSION,
+  title: 'Complete CRUD Service Spec — TypeORM Repository',
+  category: 'SERVICE',
+  language: 'typescript',
+  contentType: 'EXAMPLE',
+  tags: [
+    'crud',
+    'typeorm',
+    'repository',
+    'NotFoundException',
+    'save',
+    'findOne',
+  ],
+  content: `import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { NotFoundException } from '@nestjs/common'
 import { UserService } from './user.service'
@@ -104,4 +111,4 @@ describe('UserService', () => {
         })
     })
 })`,
-}
+};

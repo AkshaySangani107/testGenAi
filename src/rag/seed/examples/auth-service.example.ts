@@ -1,16 +1,24 @@
-import { SeedDefinition } from '../types/seed-definition.type'
+import { SeedDefinition } from '../types/seed-definition.type';
 
-export const AUTH_SERVICE_SEED_VERSION = 1
+export const AUTH_SERVICE_SEED_VERSION = 1;
 
 export const authServiceSeed: SeedDefinition = {
-    key: 'SEED_EXAMPLE_AUTH_SERVICE',
-    version: AUTH_SERVICE_SEED_VERSION,
-    title: 'Complete Auth Service Spec — JWT + bcrypt',
-    category: 'AUTH',
-    language: 'typescript',
-    contentType: 'EXAMPLE',
-    tags: ['auth', 'jwt', 'bcrypt', 'login', 'register', 'JwtService', 'UnauthorizedException'],
-    content: `import { Test, TestingModule } from '@nestjs/testing'
+  key: 'SEED_EXAMPLE_AUTH_SERVICE',
+  version: AUTH_SERVICE_SEED_VERSION,
+  title: 'Complete Auth Service Spec — JWT + bcrypt',
+  category: 'AUTH',
+  language: 'typescript',
+  contentType: 'EXAMPLE',
+  tags: [
+    'auth',
+    'jwt',
+    'bcrypt',
+    'login',
+    'register',
+    'JwtService',
+    'UnauthorizedException',
+  ],
+  content: `import { Test, TestingModule } from '@nestjs/testing'
 import { JwtService } from '@nestjs/jwt'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { UnauthorizedException, ConflictException } from '@nestjs/common'
@@ -101,4 +109,4 @@ describe('AuthService', () => {
         })
     })
 })`,
-}
+};

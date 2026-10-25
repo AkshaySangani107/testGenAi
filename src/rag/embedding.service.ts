@@ -81,7 +81,13 @@ export class EmbeddingService {
       [JSON.stringify(queryEmbedding), language, limit],
     );
 
-    return results;
+    return results as {
+      content: string;
+      title: string;
+      tags: string[];
+      category: string;
+      similarity: number;
+    }[];
   }
 
   /**
@@ -120,6 +126,12 @@ export class EmbeddingService {
       [JSON.stringify(queryEmbedding), language, limit],
     );
 
-    return results;
+    return results as {
+      content: string;
+      title: string;
+      tags: string[];
+      category: string;
+      similarity: number;
+    }[];
   }
 }

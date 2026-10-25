@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { EvaluateRequestDto } from './dto/evaluate.request.dto';
 import { RetryGenerateDto } from './dto/retry-generate.dto';
 import { EvaluationIssue } from './types/evaluation.type';
+import { SpecCacheService } from './cache/spec-cache.service';
 import * as ts from 'typescript';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class TestGenerationService {
     private readonly knowledgeRepo: Repository<KnowledgeBase>,
     @Inject(EmbeddingService)
     private readonly embeddingService: EmbeddingService,
+    private readonly cacheService: SpecCacheService,
   ) {}
 
   private cleanOutput(code: string): string {
@@ -91,6 +93,15 @@ export class TestGenerationService {
     fileContent: string,
     dependencyContext?: string,
   ): Promise<string> {
+    // Step 0: Check Spec Cache (0 Tokens if unchanged file hit)
+    const cached = await this.cacheService.getCachedSpec(fileContent);
+    if (cached) {
+      this.logger.log(
+        `Returning cached spec for ${cached.className} [0 TOKENS USED]`,
+      );
+      return cached.specContent;
+    }
+
     // Step 1: parse the file
     const parsedFile = parseTypeScriptFile(fileContent);
     this.logger.log(`Generating tests for class: ${parsedFile.className}`);

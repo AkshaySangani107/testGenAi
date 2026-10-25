@@ -1,12 +1,11 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class EvaluateRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  specContent: string;
 
-    @IsString()
-    @IsNotEmpty()
-    specContent: string;
-
-    @IsString()
-    @IsNotEmpty()
-    compactClass: string;
+  @IsString()
+  @IsNotEmpty()
+  compactClass: string;
 }

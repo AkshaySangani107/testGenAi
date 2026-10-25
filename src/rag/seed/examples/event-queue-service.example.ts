@@ -1,16 +1,23 @@
-import { SeedDefinition } from '../types/seed-definition.type'
+import { SeedDefinition } from '../types/seed-definition.type';
 
-export const EVENT_QUEUE_SERVICE_SEED_VERSION = 1
+export const EVENT_QUEUE_SERVICE_SEED_VERSION = 1;
 
 export const eventQueueServiceSeed: SeedDefinition = {
-    key: 'SEED_EXAMPLE_EVENT_QUEUE_SERVICE',
-    version: EVENT_QUEUE_SERVICE_SEED_VERSION,
-    title: 'Complete Service Spec — EventEmitter2 + BullMQ Queue',
-    category: 'SERVICE',
-    language: 'typescript',
-    contentType: 'EXAMPLE',
-    tags: ['EventEmitter2', 'BullMQ', 'queue', 'events', 'email', 'notifications'],
-    content: `import { Test, TestingModule } from '@nestjs/testing'
+  key: 'SEED_EXAMPLE_EVENT_QUEUE_SERVICE',
+  version: EVENT_QUEUE_SERVICE_SEED_VERSION,
+  title: 'Complete Service Spec — EventEmitter2 + BullMQ Queue',
+  category: 'SERVICE',
+  language: 'typescript',
+  contentType: 'EXAMPLE',
+  tags: [
+    'EventEmitter2',
+    'BullMQ',
+    'queue',
+    'events',
+    'email',
+    'notifications',
+  ],
+  content: `import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { getQueueToken } from '@nestjs/bullmq'
 import { EventEmitter2 } from '@nestjs/event-emitter'
@@ -88,4 +95,4 @@ describe('NotificationService', () => {
         })
     })
 })`,
-}
+};

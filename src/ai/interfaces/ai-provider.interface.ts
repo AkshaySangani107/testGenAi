@@ -15,6 +15,9 @@ export interface InternalAiResponse {
 
 export interface AiProvider {
   providerName: string;
-  generate(prompt: string, options?: AiGenerateOptions): Promise<InternalAiResponse>;
-  embed(text: string): Promise<{ vector: number[]; usage?: any }>;
+  generate(
+    prompt: string,
+    options?: AiGenerateOptions,
+  ): Promise<InternalAiResponse>;
+  embed(text: string): Promise<{ vector: number[]; usage?: unknown }>;
 }

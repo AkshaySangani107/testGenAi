@@ -9,11 +9,7 @@ import { AiMetrics } from './metrics/ai-metrics.entity';
 @Global()
 @Module({
   imports: [ConfigModule, TypeOrmModule.forFeature([AiMetrics])],
-  providers: [
-    aiProviderFactory,
-    AiService,
-    AiMetricsService,
-  ],
+  providers: [aiProviderFactory, AiService, AiMetricsService],
   exports: [AiService],
 })
 export class AiModule {}
