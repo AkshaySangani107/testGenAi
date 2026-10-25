@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { AiService } from '../ai/ai.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -101,20 +100,20 @@ export class TestGenerationService {
   with methods: ${parsedFile.methods.map((m) => m.name).join(', ')}
   dependencies: ${parsedFile.injectedDependencies.join(', ')}`;
 
-    // Step 3: search RAG for relevant patterns
-    const ragResults = await this.embeddingService.searchSimilar(
-      searchQuery,
-      'typescript',
-      3,
-    );
+    // Step 3: search RAG for relevant patterns AND few-shot examples in parallel
+    const [ragResults, fewShotExamples] = await Promise.all([
+      this.embeddingService.searchSimilar(searchQuery, 'typescript', 3),
+      this.embeddingService.searchSimilarExamples(searchQuery, 'typescript', 2),
+    ]);
     this.logger.log(
-      `Retrieved ${ragResults.length} RAG reference patterns for ${parsedFile.className}`,
+      `Retrieved ${ragResults.length} RAG patterns and ${fewShotExamples.length} few-shot examples for ${parsedFile.className}`,
     );
 
     // Step 4: build the prompt (replace {parsedClass} and {ragContext})
     const prompt = this.buildPrompt(
       parsedFile,
       ragResults,
+      fewShotExamples,
       fileContent,
       dependencyContext,
     );
@@ -130,6 +129,7 @@ export class TestGenerationService {
   private buildPrompt(
     parsedClass: ParsedClass,
     ragContext: { content: string; title: string }[],
+    fewShotExamples: { content: string; title: string }[],
     sourceContent: string,
     dependencyContext?: string,
   ): string {
@@ -149,6 +149,20 @@ ${dependencyContext}
 `
       : '';
 
+    const fewShotSection =
+      fewShotExamples && fewShotExamples.length > 0
+        ? `FEW-SHOT REFERENCE (study these complete working specs and follow the same structure):
+${fewShotExamples
+  .map(
+    (ex, i) => `--- REFERENCE EXAMPLE ${i + 1}: ${ex.title} ---
+${ex.content}
+--- END EXAMPLE ${i + 1} ---`,
+  )
+  .join('\n\n')}
+
+`
+        : '';
+
     return `You are a senior NestJS engineer generating Jest unit tests.
 
 CLASS:
@@ -157,7 +171,7 @@ ${compactClass}
 ${dependencySection}PATTERNS:
 ${patterns}
 
-CRITICAL RULES:
+${fewShotSection}CRITICAL RULES:
 - TYPE SAFETY: NEVER USE 'any' IN GENERATED CODE. Use actual types (e.g. ${parsedClass.className}, entity classes, DTO classes) whenever known. If a type is not known or when casting mock stubs, use 'unknown' (e.g. const item = {} as unknown as TargetType, or as unknown).
 - Import service: import { ${parsedClass.className} } from './${serviceFileName}.service'
 - Copy ALL imports EXACTLY from ACTUAL IMPORTS above (do not alter paths, e.g. use exact relative or tsconfig paths)
@@ -235,12 +249,44 @@ CRITICAL MOCK RULES:
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
         jsonStr = jsonString.slice(firstBrace, lastBrace + 1);
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const parsed = JSON.parse(jsonStr);
-      const score = typeof parsed.score === 'number' ? parsed.score : 36;
-      const issues = Array.isArray(parsed.issues) ? parsed.issues : [];
+      const parsed: unknown = JSON.parse(jsonStr);
+      let score = 36;
+      const issues: EvaluationIssue[] = [];
+
+      if (typeof parsed === 'object' && parsed !== null) {
+        const record = parsed as Record<string, unknown>;
+        if (typeof record.score === 'number') {
+          score = record.score;
+        }
+
+        if (Array.isArray(record.issues)) {
+          for (const item of record.issues) {
+            if (typeof item === 'object' && item !== null) {
+              const issueObj = item as Record<string, unknown>;
+              const category =
+                typeof issueObj.category === 'string'
+                  ? issueObj.category
+                  : 'general';
+              const rawSeverity =
+                typeof issueObj.severity === 'string'
+                  ? issueObj.severity.toLowerCase()
+                  : 'low';
+              const severity: 'low' | 'medium' | 'high' =
+                rawSeverity === 'high' || rawSeverity === 'medium'
+                  ? rawSeverity
+                  : 'low';
+              const message =
+                typeof issueObj.message === 'string'
+                  ? issueObj.message
+                  : 'Quality issue identified';
+
+              issues.push({ category, severity, message });
+            }
+          }
+        }
+      }
+
       this.logger.log(`LLM evaluation completed. Score: ${score}/45`);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       return { score, issues };
     } catch (error: unknown) {
       const errMsg = error instanceof Error ? error.message : String(error);
@@ -305,16 +351,16 @@ Return ONLY valid JSON, no markdown, no explanation:
     const searchQuery = `NestJS ${parsedFile.className} service
             with methods: ${parsedFile.methods.map((m) => m.name).join(', ')}
             dependencies: ${parsedFile.injectedDependencies.join(', ')}`;
-    // Step 3: search RAG
-    const ragResults = await this.embeddingService.searchSimilar(
-      searchQuery,
-      'typescript',
-      3,
-    );
+    // Step 3: search RAG for both patterns and examples
+    const [ragResults, fewShotExamples] = await Promise.all([
+      this.embeddingService.searchSimilar(searchQuery, 'typescript', 3),
+      this.embeddingService.searchSimilarExamples(searchQuery, 'typescript', 2),
+    ]);
     // Step 4: build RETRY prompt (different from first gen)
     const prompt = this.buildRetryPrompt(
       parsedFile,
       ragResults,
+      fewShotExamples,
       dto.previousSpec,
       dto.feedback,
       dto.fileContent,
@@ -331,6 +377,7 @@ Return ONLY valid JSON, no markdown, no explanation:
   private buildRetryPrompt(
     parsedClass: ParsedClass,
     ragContext: { content: string; title: string }[],
+    fewShotExamples: { content: string; title: string }[],
     previousSpec: string,
     feedback: string[],
     sourceContent: string,
@@ -347,6 +394,20 @@ ${dependencyContext}
 `
       : '';
 
+    const fewShotSection =
+      fewShotExamples && fewShotExamples.length > 0
+        ? `FEW-SHOT REFERENCE (study these complete working specs and follow the same structure):
+${fewShotExamples
+  .map(
+    (ex, i) => `--- REFERENCE EXAMPLE ${i + 1}: ${ex.title} ---
+${ex.content}
+--- END EXAMPLE ${i + 1} ---`,
+  )
+  .join('\n\n')}
+
+`
+        : '';
+
     return `You are a senior NestJS engineer fixing a generated test file.
 
 CLASS:
@@ -361,7 +422,7 @@ ${feedback
   .map((f, i) => `${i + 1}. ${f}`)
   .join('\n')}
 
-CRITICAL RULES:
+${fewShotSection}CRITICAL RULES:
 - TYPE SAFETY: NEVER USE 'any' IN GENERATED CODE. Use actual types (e.g. ${parsedClass.className}, entity classes, DTO classes) whenever known. If a type is not known or when casting mock stubs, use 'unknown' (e.g. const item = {} as unknown as TargetType, or as unknown).
 - Import service: import { ${parsedClass.className} } from './${serviceFileName}.service'
 - Copy ALL other imports EXACTLY from CLASS section above (do not alter paths, e.g. use exact relative or tsconfig paths)

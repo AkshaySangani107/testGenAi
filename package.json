@@ -20,8 +20,11 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/data-source.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
+    "migration:up": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
+    "migration:down": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
     "seed": "ts-node src/rag/seed/knowledge.seed.ts",
+    "seed:few-shot": "ts-node src/rag/seed/few-shot.seed.ts",
     "embed": "ts-node -e \"const { AppDataSource } = require('./src/data-source'); const { EmbeddingService } = require('./src/rag/embedding.service');\""
   },
   "dependencies": {
