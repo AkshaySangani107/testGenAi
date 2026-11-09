@@ -184,6 +184,7 @@ ${patterns}
 
 ${fewShotSection}CRITICAL RULES:
 - TYPE SAFETY: NEVER USE 'any' IN GENERATED CODE. Use actual types (e.g. ${parsedClass.className}, entity classes, DTO classes) whenever known. If a type is not known or when casting mock stubs, use 'unknown' (e.g. const item = {} as unknown as TargetType, or as unknown).
+- PRE-BUILT MOCKS: If the DEPENDENCY CONTRACT contains MOCK FIXTURE CODE (e.g. for Repositories, Models, Cache, or Services), USE THOSE EXACT MOCK OBJECTS AND PROVIDER DEFINITIONS verbatim. DO NOT re-invent mock structures.
 - Import service: import { ${parsedClass.className} } from './${serviceFileName}.service'
 - Copy ALL imports EXACTLY from ACTUAL IMPORTS above (do not alter paths, e.g. use exact relative or tsconfig paths)
 - UNIT TEST BOUNDARY: Mock ONLY direct constructor dependencies of ${parsedClass.className}. DO NOT import or provide nested/transitive dependencies in Test.createTestingModule.
@@ -435,6 +436,7 @@ ${feedback
 
 ${fewShotSection}CRITICAL RULES:
 - TYPE SAFETY: NEVER USE 'any' IN GENERATED CODE. Use actual types (e.g. ${parsedClass.className}, entity classes, DTO classes) whenever known. If a type is not known or when casting mock stubs, use 'unknown' (e.g. const item = {} as unknown as TargetType, or as unknown).
+- PRE-BUILT MOCKS: If the DEPENDENCY CONTRACT contains MOCK FIXTURE CODE (e.g. for Repositories, Models, Cache, or Services), USE THOSE EXACT MOCK OBJECTS AND PROVIDER DEFINITIONS verbatim.
 - Import service: import { ${parsedClass.className} } from './${serviceFileName}.service'
 - Copy ALL other imports EXACTLY from CLASS section above (do not alter paths, e.g. use exact relative or tsconfig paths)
 - UNIT TEST BOUNDARY: Mock ONLY direct constructor dependencies of ${parsedClass.className}. DO NOT import or provide nested/transitive dependencies in Test.createTestingModule.
