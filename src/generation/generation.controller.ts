@@ -8,6 +8,8 @@ import { SpecCacheService } from './cache/spec-cache.service';
 import { SaveSpecCacheDto } from './dto/save-cache.dto';
 import { SpecExpanderService } from './expansion/spec-expander.service';
 import { ExpandTestDto } from './dto/expand-test.dto';
+import { DatasetService } from '../dataset/dataset.service';
+import * as crypto from 'crypto';
 
 @Controller('generate')
 export class GenerationController {
@@ -15,6 +17,7 @@ export class GenerationController {
     private readonly generationService: TestGenerationService,
     private readonly cacheService: SpecCacheService,
     private readonly expanderService: SpecExpanderService,
+    private readonly datasetService: DatasetService,
   ) {}
 
   @Get('health')
@@ -52,6 +55,26 @@ export class GenerationController {
     @Body() body: SaveSpecCacheDto,
   ): Promise<{ success: boolean }> {
     await this.cacheService.saveSpec(body);
+
+    if (body.score >= 65) {
+      const hash = crypto
+        .createHash('sha256')
+        .update(body.sourceContent)
+        .digest('hex');
+      await this.datasetService.savePair({
+        sourceHash: hash,
+        serviceName: body.className,
+        sourceCode: body.sourceContent,
+        systemPrompt:
+          'You are an expert NestJS unit test engineer. Generate comprehensive, type-safe Jest unit tests with zero any.',
+        userPrompt: `Generate unit test for ${body.className}`,
+        generatedSpec: body.specContent,
+        evaluationScore: body.score,
+        passedOnAttempt: body.attempts,
+        modelProvider: body.modelProvider || 'gemini',
+      });
+    }
+
     return { success: true };
   }
 }

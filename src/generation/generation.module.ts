@@ -7,9 +7,14 @@ import { GenerationController } from './generation.controller';
 import { SpecCache } from './cache/spec-cache.entity';
 import { SpecCacheService } from './cache/spec-cache.service';
 import { SpecExpanderService } from './expansion/spec-expander.service';
+import { DatasetModule } from '../dataset/dataset.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([KnowledgeBase, SpecCache]), RagModule],
+  imports: [
+    TypeOrmModule.forFeature([KnowledgeBase, SpecCache]),
+    RagModule,
+    DatasetModule,
+  ],
   controllers: [GenerationController],
   providers: [TestGenerationService, SpecCacheService, SpecExpanderService],
   exports: [TestGenerationService, SpecCacheService, SpecExpanderService],
