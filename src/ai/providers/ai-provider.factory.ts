@@ -9,6 +9,7 @@ import { AwsBedrockProvider } from './aws-bedrock.provider';
 import { VertexAiProvider } from './vertex-ai.provider';
 import { GroqProvider } from './groq.provider';
 import { ResilientFallbackProvider } from './resilient-fallback.provider';
+import { CustomModelProvider } from './custom-model.provider';
 
 export const AI_PROVIDER_STRATEGY_TOKEN = 'AI_PROVIDER_STRATEGY';
 
@@ -76,6 +77,17 @@ export const aiProviderFactory = {
           config.getOrThrow('GEMINI_API_KEY'),
           eventEmitter,
         );
+
+      case 'custom':
+      case 'finetuned':
+      case 'testgenai': {
+        const url =
+          config.get<string>('CUSTOM_MODEL_URL') ||
+          process.env.CUSTOM_MODEL_URL ||
+          'http://localhost:8000';
+        const geminiKey = config.get<string>('GEMINI_API_KEY');
+        return new CustomModelProvider(url, geminiKey, eventEmitter);
+      }
 
       case 'openai':
       default:
