@@ -25,6 +25,7 @@
     "migration:down": "typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
     "seed": "ts-node src/rag/seed/knowledge.seed.ts",
     "seed:few-shot": "ts-node src/rag/seed/few-shot.seed.ts",
+    "seed:dataset": "ts-node src/dataset/seed/dataset.seed.ts",
     "embed": "ts-node -e \"const { AppDataSource } = require('./src/data-source'); const { EmbeddingService } = require('./src/rag/embedding.service');\""
   },
   "dependencies": {

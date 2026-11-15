@@ -7,6 +7,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RagModule } from './rag/rag.module';
 import { AiModule } from './ai/ai.module';
 import { TestGenerationModule } from './generation/generation.module';
+import { DatasetModule } from './dataset/dataset.module';
 
 import { HealthController } from './health/health.controller';
 
@@ -33,7 +34,8 @@ import { HealthController } from './health/health.controller';
     EventEmitterModule.forRoot(),
     RagModule,
     AiModule,
-    TestGenerationModule, // ← add
+    TestGenerationModule,
+    DatasetModule,
   ],
   controllers: [HealthController],
   providers: [
