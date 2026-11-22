@@ -41,8 +41,12 @@ export class CustomModelProvider extends BaseAiProvider {
     });
 
     if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      this.logger.error(
+        `Custom Model API error (${res.status} ${res.statusText}): ${errBody}`,
+      );
       throw new Error(
-        `Custom Model API error: ${res.status} ${res.statusText}`,
+        `Custom Model API error: ${res.status} ${res.statusText} - ${errBody}`,
       );
     }
 
